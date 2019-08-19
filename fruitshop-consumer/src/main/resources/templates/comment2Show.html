@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script type="text/javascript" src="../js/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="../js/easyui1.5/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui1.5/locale/easyui-lang-zh_CN.js"></script>
+
+    <link rel="stylesheet" href="../js/easyui1.5/themes/default/easyui.css"></link>
+    <link rel="stylesheet" href="../js/easyui1.5/themes/icon.css"></link>
+    <script type="text/javascript" src="../js/EasyuiCRUD.js"></script>
+
+</head>
+
+<body style="visibility:hidden;">
+<div id="ToolBar">
+
+
+    商品名称<input type="text" name="commcontent" id="nr">
+    <input type="button" onclick="querymocha()" value="搜索">
+    <a id="btn" href="javaScript:delById()" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'">批量删除</a>
+
+</div>
+<!--表头-->
+<table id="data" title="" class="easyui-datagrid" ToolBar="#ToolBar"></table>
+<!-- 弹框 -->
+<div id="myDialog" class="easyui-dialog" style="width:500px;height:300px;" buttons="#AddOk" closed="true">
+
+    </form>
+
+
+</div>
+<div id="AddOk">
+    <a href="javaScript:addDialog()" class="easyui-linkbutton" data-options="iconCls:'icon-ok'">提交</a>
+
+</div>
+
+
+</body>
+<script type="text/javascript">
+    $(function () {
+        // 先将body隐藏，再显示，不会出现页面刷新效果
+        $("body").css({visibility: "visible"});
+        $("#data").datagrid({
+            //路径
+            url: "../shop/querycommshow2",
+            type: "post",
+            columns: [
+                [
+                    {field: 'cb', checkbox: true},
+                    {field: 'id', title: 'ID', width: 100},
+                    {field: 'commname', title: '用户名', width: 100},
+                    {field: 'commcontent', title: '评论内容', width: 100},
+                    {field: 'shopname', title: '评论商品', width: 100},
+                    {field: 'commdate', title: '评论时间', width: 100},
+                    {field:'abc',title:'操作',formatter:function(value,row,index){
+
+                            return '<a href="JavaScript:delById('+row.tar+')">删除商品</a> ';
+                        }
+                    },
+
+
+                ]
+            ],
+            //分页
+            pagination: true,
+            //设置的每页条数
+            pageList: [1, 2, 5, 10],
+            //显示行号
+            rownumbers: true,
+            //自动填充父容器大小
+            //fit:true,
+            //真正的自动展开/收缩列的大小，以适应网格的宽度，防止水平滚动。
+            fitColumns: true,
+            /* toolbar:[
+                {
+                    iconCls:'icon-mini-regfresh',
+                    handler:function(){
+
+                        alert("www");
+                    }
+
+                }
+
+            ] */
+        })
+
+    })
+
+
+    //条件查询
+    function  querymocha(){
+
+        //条查
+        alert($("#nr").val());
+        $("#data").datagrid('load',{
+            commname:$("#nr").val(),
+        })
+    };
+
+    //新增
+    function addDialog() {
+        //submit 提交方法
+        $('#myform').form('submit', {
+            url: '../shop/addShop',
+            //在提交之前触发，返回false可以终止提交
+            onSubmit: function () {
+                //对表单校验 validate
+                return $("#myform").form('validate');
+            },
+            success: function (data) {
+                alert("成功！！");
+                //关闭当前窗口
+                $("#myDialog").dialog('close');
+                //刷新表格数据
+                $("#data").datagrid('reload');
+
+            }
+        });
+
+
+    }
+    //修改
+    function editDialog() {
+
+        //获取数据  返回所有被选中的行 getSelections
+        var rows = $("#data").datagrid('getSelections');
+        //先判断是否选中一行数据
+        if (1 != rows.length) {
+            //弹出框
+            $.messager.alert('警告', '请选择一条且只能选择一条数据');
+            return;
+        }
+
+        //获取到一条已选择的数据
+        var row1 = rows[0];
+        //打开页面
+        $("#myDialog").dialog('open').dialog('setTitle', '添加数据');
+        //把数据加载到form表单中显示
+        $("#myform").form('load', row1);
+
+    }
+
+    //删除
+    function delById() {
+        //获取到选中的id  返回的是数组
+        var rows = $("#data").datagrid('getSelections');
+        if (0 == rows.length) {
+            $.messager.alert("系统提示", "请选择要作废的商品");
+            return;
+        }
+        //定义一个数组
+        var Arr = [];
+        //for循环得到每一个选中的id
+        for (var i = 0; i < rows.length; i++) {
+            //把得到的id 放入数组中 123
+            Arr.push(rows[i].id);
+        }
+        //1，2，3
+        var ids = Arr.join(",");
+        //$.post("ss","确定删除吗",function(){},type(json))
+        $.messager.confirm("系统提示", "你确定要作废<font color=red> " + rows.length + " </font>条商品吗?",
+            function (xo) {
+                if (xo) {
+                    $("#data").datagrid('reload');
+
+                    //$.post("url",参数,函数)
+                    $.post("../shop/deletebyidcom", {ids: ids}, function (result) {
+                        if (result.success) {
+                            $.messager.alert("系统提示", "你已成功作废 <font color=green> " + result.DeleteCounts + " </font>条数据!~");
+                            $("#data").datagrid('reload');
+                        } else {
+                            $.messager.alert("系统提示", "<font color=red>作废失败</font>");
+                        }
+                    }, "json");
+                }
+            });
+    }
+
+
+</script>
+
+
+</html>

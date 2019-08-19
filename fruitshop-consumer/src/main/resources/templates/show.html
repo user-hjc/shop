@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script type="text/javascript" src="../js/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="../js/easyui1.5/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui1.5/locale/easyui-lang-zh_CN.js"></script>
+
+    <link rel="stylesheet" href="../js/easyui1.5/themes/default/easyui.css"></link>
+    <link rel="stylesheet" href="../js/easyui1.5/themes/icon.css"></link>
+    <script type="text/javascript" src="../js/EasyuiCRUD.js"></script>
+
+    <!-- 引入上传文件 插件 -->
+    <script type="text/javascript" src="../js/uploadify/jquery.uploadify.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../js/uploadify/uploadify.css" />
+
+
+
+</head>
+
+<body style="visibility:hidden;">
+<div id="ToolBar">
+
+       商品名称<input type="text" name="shap" id="mc">
+        商品类型<select name="shoptype" id="xl1">
+         </select><br>
+        <input type="button" onclick="querymocha()" value="搜索"><br>
+    <a id="ben" href="javaScript:openDialog()" class="easyui-linkbutton" data-options="iconCls:'icon-add'">添加商品</a>
+    <a id="btn" href="javaScript:updatebyids()" class="easyui-linkbutton" data-options="iconCls:'icon-add'">加入回收站</a>
+
+</div>
+<!--表头-->
+<table id="data" title="" class="easyui-datagrid" ToolBar="#ToolBar"></table>
+<!-- 弹框 -->
+<div id="myDialog" class="easyui-dialog" style="width:500px;height:300px;" buttons="#AddOk" closed="true">
+    <form id="myform" method="post">
+        <input type="hidden" name="id"><br>
+        <input type="hidden" name="shopdate"><br>
+        商品名称<input type="text" name="shopname"><br>
+        商品类型<select name="shoptype" id="xlhc">
+                </select><br>
+        商品产地<input type="text" name="shopinfo"><br>
+        产品品质<select name="shoplabel" id="xlpz">
+                </select><br>
+        商品价格<input type="text" name="shopprice"><br>
+        商品库存量<input type="text" name="shopnum"><br>
+        图片
+
+        <input type="hidden" name="shopimg" id="imgId" />
+        <input type="file" id="imgFileBTN" />
+        <div id="showImgDiv" style="width: 150px;height: 200px;border-style:solid;border-width:1px; border-color:black;">
+            <img src="" id="showImg" style="width: 80px">
+        </div>
+        <div id="showBars" ></div>
+
+    </form>
+
+
+</div>
+<div id="AddOk">
+    <a href="javaScript:addDialog()" class="easyui-linkbutton" data-options="iconCls:'icon-ok'">提交</a>
+
+</div>
+
+
+</body>
+<script type="text/javascript">
+    $(function () {
+        // 先将body隐藏，再显示，不会出现页面刷新效果
+        $("body").css({visibility: "visible"});
+        $("#data").datagrid({
+            //路径
+            url: "../shop/queryCommodity",
+            type: "post",
+            columns: [
+                [
+                    {field: 'cb', checkbox: true},
+                    {field: 'id', title: 'ID', width: 100},
+                    {field:'shopimg',title:'商品展示',width:100,
+
+                        formatter:function(value,row,index){
+
+                            return "<img src='"+"../upload/"+value+"' width='100' height='100'>";
+                        }
+                    },
+                    {field: 'shopname', title: '商品名称', width: 100},
+                    {field: 'typename', title: '商品类型', width: 100},
+                    {field: 'shopinfo', title: '商品产地', width: 100},
+                    {field: 'labelname', title: '产品品质', width: 100},
+                     {field: 'shopprice', title: '商品价格', width: 100},
+                    {field: 'shopdate', title: '上传日期', width: 100},
+                    {field:'shopnum',title:'商品库存',width:100,
+                     formatter:function(value,row,index){
+                        if(value>1){
+                          return"上架"+"库存量:"+value;
+
+                        }else if(value<1){
+                            return"下架"+"库存量"+value;
+
+                        }
+                    }
+                    },
+                    {field:'abc',title:'操作',formatter:function(value,row,index){
+
+                        return '<a href="JavaScript:editDialog('+row.tar+')">修改商品</a> |' +
+                            '<a href="JavaScript:delById('+row.tar+')">删除商品</a> |';
+                        }
+                        },
+
+
+                ]
+            ],
+            //分页
+            pagination: true,
+            //设置的每页条数
+            pageList: [1, 2, 5, 10],
+            //显示行号
+            rownumbers: true,
+            //自动填充父容器大小
+            //fit:true,
+            //真正的自动展开/收缩列的大小，以适应网格的宽度，防止水平滚动。
+            fitColumns: true,
+            /* toolbar:[
+                {
+                    iconCls:'icon-mini-regfresh',
+                    handler:function(){
+
+                        alert("www");
+                    }
+
+                }
+
+            ] */
+        })
+
+    })
+
+  //条件查询
+    function  querymocha(){
+
+        //条查
+        alert($("#mc").val());
+        alert($("#xl1").val());
+
+        $("#data").datagrid('load',{
+            shapi:$("#mc").val(),
+            lx1:$("#xl1").val(),
+
+        })
+  }
+
+    //新增
+    function addDialog() {
+        //submit 提交方法
+        $('#myform').form('submit', {
+            url: '../shop/addShop',
+            //在提交之前触发，返回false可以终止提交
+            onSubmit: function () {
+                //对表单校验 validate
+                return $("#myform").form('validate');
+            },
+            success: function (data) {
+                alert("成功！！");
+                //关闭当前窗口
+                $("#myDialog").dialog('close');
+                //刷新表格数据
+                $("#data").datagrid('reload');
+
+            }
+        });
+
+
+    }
+    //修改
+    function editDialog() {
+
+        //获取数据  返回所有被选中的行 getSelections
+        var rows = $("#data").datagrid('getSelections');
+        //先判断是否选中一行数据
+        if (1 != rows.length) {
+            //弹出框
+            $.messager.alert('警告', '请选择一条且只能选择一条数据');
+            return;
+        }
+
+        //获取到一条已选择的数据
+        var row1 = rows[0];
+        //打开页面
+        $("#myDialog").dialog('open').dialog('setTitle', '添加数据');
+        //把数据加载到form表单中显示
+        $("#myform").form('load', row1);
+
+    }
+
+    //删除
+    function delById() {
+        //获取到选中的id  返回的是数组
+        var rows = $("#data").datagrid('getSelections');
+        if (0 == rows.length) {
+            $.messager.alert("系统提示", "请选择要作废的商品");
+            return;
+        }
+        //定义一个数组
+        var Arr = [];
+        //for循环得到每一个选中的id
+        for (var i = 0; i < rows.length; i++) {
+            //把得到的id 放入数组中 123
+            Arr.push(rows[i].id);
+        }
+        //1，2，3
+        var ids = Arr.join(",");
+        //$.post("ss","确定删除吗",function(){},type(json))
+        $.messager.confirm("系统提示", "你确定要作废<font color=red> " + rows.length + " </font>条商品吗?",
+            function (xo) {
+                if (xo) {
+                    $("#data").datagrid('reload');
+
+                    //$.post("url",参数,函数)
+                    $.post("../shop/deletebyid", {ids: ids}, function (result) {
+                        if (result.success) {
+                            $.messager.alert("系统提示", "你已成功作废 <font color=green> " + result.DeleteCounts + " </font>条数据!~");
+                            $("#data").datagrid('reload');
+                        } else {
+                            $.messager.alert("系统提示", "<font color=red>作废失败</font>");
+                        }
+                    }, "json");
+                }
+            });
+    }
+
+    $(function () {
+
+        querytypeid();
+        queryquality();
+    })
+
+    querytypeid=function () {
+
+       $.ajax({
+           url:"../shop/querytypeid",
+           type:"post",
+
+            success:function (data) {
+               var op="<option value='0'>-请选择-</option>";
+               for (var i =0;i<data.length;i++){
+                   op+="<option value='"+data[i].id+"'>"+data[i].typename+"</option>";
+
+           }
+                $("#xlhc").html(op);
+                $("#xl1").html(op);
+
+           }
+
+       })
+
+    }
+
+    queryquality=function () {
+
+        $.ajax({
+            url:"../shop/queryquality",
+            type:"post",
+
+            success:function (data) {
+                var op="<option value='0'>-请选择-</option>";
+
+                for (var i =0;i<data.length;i++){
+                    op+="<option value='"+data[i].id+"'>"+data[i].labelname+"</option>";
+
+                }
+                $("#xlpz").html(op);
+          }
+       })
+      }
+    //上传插件
+    $(function(){
+        //文件域的id
+        $("#imgFileBTN").uploadify({
+            //前台请求后台的url 不可忽略的参数
+            'uploader' :"../shop/uploadNewsImg",
+            //插件自带 不可忽略的参数
+            'swf' : '../js/uploadify/uploadify.swf',
+            //撤销按钮的图片路径""
+            'cancelImg' : '../js/uploadify/uploadify-cancel.png',
+            //如果为true 为自动上传 在文件后 为false 那么它就要我们自己手动点上传按钮
+            'auto' : true,
+            //可以同时选择多个文件 默认为true 不可忽略
+            'multi' : false,
+            //给上传按钮设置文字
+            'buttonText' : '上传图片',
+            //上传后队列是否消失
+            'removeCompleted' : true,
+            'removeTimeout' : 1,
+            //上传文件的个数
+            'uploadLimit' : 2,
+            'fileTypeExts' : '*.jpg;*.jpge;*.gif;*.png',
+            'fileSizeLimit' : '2MB',
+            //给div的进度条加背景 不可忽略
+            'queueID' : 'showBars',
+            // controller层方法中接收文件的参数名, 参数名为自定义
+            'fileObjName' : 'img',
+            //      上传成功后的回调函数
+            'onUploadSuccess' : function(file, data, response) {
+                alert(data);
+                data = data.replace("\"","").replace("\"","");
+                $("#showImg").attr("src","../upload/"+data);
+                $("#imgId").val(data);
+            }
+
+        });
+    });
+
+    //回收站
+    function updatebyids() {
+        //获取到选中的id  返回的是数组
+        var rows = $("#data").datagrid('getSelections');
+        if (0 == rows.length) {
+            $.messager.alert("系统提示", "请选择要加入回收站的数据!");
+            return;
+        }
+        //定义一个数组
+        var Arr = [];
+        //for循环得到每一个选中的id
+        for (var i = 0; i < rows.length; i++) {
+            //把得到的id 放入数组中 123
+            Arr.push(rows[i].id);
+        }
+        //1，2，3
+        var ids = Arr.join(",");
+        //$.post("ss","确定删除吗",function(){},type(json))
+        $.messager.confirm("系统提示", "你确定要加入回收这<font color=red> " + rows.length + " </font>条商品吗?",
+            function (xo) {
+                if (xo) {
+                    $("#data").datagrid('reload');
+
+                    //$.post("url",参数,函数)
+                    $.post("../shop/updatebyids", {ids: ids}, function (result) {
+                        if (result.success) {
+                            $.messager.alert("系统提示", "你已成功加入 <font color=green> " + result.DeleteCounts + " </font>条数据!~");
+                            $("#data").datagrid('reload');
+                        } else {
+                            $.messager.alert("系统提示", "<font color=red>加入失败</font>");
+                        }
+                    }, "json");
+                }
+            });
+    }
+
+</script>
+
+
+</html>

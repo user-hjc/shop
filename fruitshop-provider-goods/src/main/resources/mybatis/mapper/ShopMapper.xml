@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jk.dao.ShopMapper" >
+  <select id="queryAllShop" resultType="com.jk.model.Shop">
+    select * from t_shop
+  </select>
+
+  <select id="queryCommodityGetTotal" resultType="int" parameterType="java.util.Map">
+    select count(*) from t_shop s,t_shoptype t,t_shoplabel p
+    where s.shoptype=t.id and s.shoplabel=p.id and s.shopstate=1
+    <include refid="mocha"></include>
+
+
+    </select>
+
+  <select id="queryCommodity" resultType="com.jk.model.Shop" parameterType="java.util.Map">
+   select  *  from  t_shop s,t_shoptype t,t_shoplabel p
+    where s.shoptype=t.id and s.shoplabel=p.id
+    and s.shopstate=1
+    <include refid="mocha"></include>
+
+   limit #{start},#{end}
+
+   </select>
+
+    <sql id="mocha">
+        <if test="shapi!=null and shapi!=''">
+       and s.shopname like #{shapi}
+        </if>
+        <if test="xl1!=null and xl1!=0">
+        and s.shoptype=#{xl1}
+        </if>
+    </sql>
+
+    <delete id="deletebyid" parameterType="String">
+
+            delete  from t_shop
+         <where>
+             id in
+             <foreach collection="ids" item="ids" open="(" close=")" separator=",">
+             #{ids}
+       </foreach>
+        </where>
+  </delete>
+
+    <select id="querytypeid" resultType="com.jk.model.ShopType">
+
+        select * from t_shoptype
+    </select>
+
+    <select id="queryquality" resultType="com.jk.model.ShopLabel">
+
+        select * from t_shoplabel
+    </select>
+
+    <insert id="addShop" parameterType="com.jk.model.Shop">
+        insert into  t_shop(shopname,shoptype,shopinfo,shoplabel,shopprice,shopnum,shopdate,shopimg,shopmanifest,shopstate)
+     values(#{shopname},#{shoptype},#{shopinfo},#{shoplabel},#{shopprice},#{shopnum},#{shopdate},#{shopimg},#{shopmanifest},#{shopstate})
+    </insert>
+
+    <update id="updateShop" parameterType="com.jk.model.Shop">
+       update t_shop set shopname=#{shopname},shoptype=#{shoptype},shopinfo=#{shopinfo},shoplabel=#{shoplabel},
+        shopprice=#{shopprice},shopnum=#{shopnum},shopdate=#{shopdate},shopimg=#{shopimg}
+        where id=#{id}
+  </update>
+
+    <update id="updatebyids" parameterType="String">
+        update  t_shop  set  shopstate=2
+         <where>
+            id in
+            <foreach collection="ids" item="ids" open="(" close=")" separator=",">
+                #{ids}
+            </foreach>
+        </where>
+
+    </update>
+
+    <select id="queryRecycleGetTotal" parameterType="java.util.Map" resultType="int">
+    select count(*) from  t_shop where  shopstate=2
+    </select>
+
+    <select id="queryRecycle" parameterType="java.util.Map" resultType="com.jk.model.Shop">
+
+     select * from t_shop where shopstate=2
+     limit #{start},#{end}
+    </select>
+
+    <update id="updatebyidz" parameterType="int">
+        update t_shop  set shopstate=1
+        where id=#{id}
+
+    </update>
+
+    <select id="queryCommodityTypeGetTotal" parameterType="java.util.Map" resultType="int">
+    select count(*) from  t_shoptype
+    </select>
+
+    <select id="queryCommodityType" parameterType="java.util.Map" resultType="com.jk.model.Shop">
+
+     select * from t_shoptype
+
+     limit #{start},#{end}
+    </select>
+
+    <insert id="addShopType" parameterType="com.jk.model.ShopType">
+        insert into t_shoptype(typename)
+         values(#{typename})
+
+    </insert>
+
+    <update id="updateShopType" parameterType="com.jk.model.ShopType">
+        update t_shoptype set typename=#{typename}
+        where id=#{id}
+    </update>
+
+    <delete id="deletebyidShoptype" parameterType="String">
+
+        delete  from t_shoptype
+        <where>
+            id in
+            <foreach collection="ids" item="ids" open="(" close=")" separator=",">
+                #{ids}
+            </foreach>
+        </where>
+    </delete>
+
+
+    <select id="queryShoplabelGetTotal" parameterType="java.util.Map" resultType="int">
+    select count(*) from  t_shoplabel
+    </select>
+
+    <select id="queryShoplabel" parameterType="java.util.Map" resultType="com.jk.model.Shop">
+
+     select * from t_shoplabel
+
+     limit #{start},#{end}
+    </select>
+
+    <insert id="addLabel" parameterType="com.jk.model.ShopLabel">
+        insert into  t_shoplabel(labelname,labelinfo)
+        values
+        (#{labelname},#{labelinfo});
+
+    </insert>
+
+    <select id="querycommshow123Gettotal" parameterType="java.util.Map" resultType="int">
+    select count(*) from t_comment where commstr=1
+        <include refid="querypinlun"></include>
+
+    </select>
+
+    <select id="querycommshow123" parameterType="java.util.Map" resultType="com.jk.model.Shop">
+
+     select * from t_comment  where commstr=1
+
+    <include refid="querypinlun"></include>
+     limit #{start},#{end}
+    </select>
+
+<sql id="querypinlun">
+<if test="commname!=null and commname!=''">
+   and commcontent like #{commname}
+</if>
+
+</sql>
+
+
+    <delete id="deletebyidcom" parameterType="String">
+
+        delete  from t_comment
+        <where>
+            id in
+            <foreach collection="ids" item="ids" open="(" close=")" separator=",">
+                #{ids}
+            </foreach>
+        </where>
+    </delete>
+
+
+    <select id="querycommshow2Gettotal" parameterType="java.util.Map" resultType="int">
+    select count(*) from t_comment where commstr=2
+        <include refid="querypinlun2"></include>
+
+    </select>
+
+    <select id="querycommshow2" parameterType="java.util.Map" resultType="com.jk.model.Shop">
+
+     select * from t_comment  where commstr=2
+     <include refid="querypinlun2"></include>
+     limit #{start},#{end}
+    </select>
+
+    <sql id="querypinlun2">
+        <if test="commname!=null and commname!=''">
+            and commcontent like #{commname}
+        </if>
+
+    </sql>
+
+</mapper>
